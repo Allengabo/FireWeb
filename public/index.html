@@ -1,0 +1,98 @@
+<script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { 
+        getAuth, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged, 
+        signOut 
+    } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
+    import { 
+        getFirestore, 
+        collection, 
+        addDoc, 
+        getDocs, 
+        doc, 
+        setDoc 
+    } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCqRkngucny0qCPCNjhhtc2dD92oKeVSfw",
+        authDomain: "mywebapp-e1e28.firebaseapp.com",
+        projectId: "mywebapp-e1e28",
+        storageBucket: "mywebapp-e1e28.appspot.com",
+        messagingSenderId: "897531173666",
+        appId: "1:897531173666:web:714a577218b9b83387a37b"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Track user authentication state
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("User is logged in:", user.email);
+        } else {
+            console.log("No user logged in");
+        }
+    });
+
+    // Register User and Save to Firestore
+    window.register = function () {
+        const email = document.getElementById("regEmail").value;
+        const password = document.getElementById("regPassword").value;
+
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(async (userCredential) => {
+                const user = userCredential.user;
+                console.log("User Registered:", user);
+
+                // Save user info in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    email: user.email,
+                    createdAt: new Date()
+                });
+                console.log("User data saved to Firestore");
+            })
+            .catch(error => console.error("Error:", error.message));
+    };
+
+    // Login User
+    window.login = function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then(userCredential => console.log("User Logged In:", userCredential.user))
+            .catch(error => console.error("Error:", error.message));
+    };
+
+    // Logout User
+    window.logout = function () {
+        signOut(auth).then(() => {
+            console.log("User logged out");
+        }).catch(error => {
+            console.error("Logout error:", error);
+        });
+    };
+
+</script>
+
+<body>
+    <h2>Register</h2>
+    <input type="email" id="regEmail" placeholder="Enter Email">
+    <input type="password" id="regPassword" placeholder="Enter Password">
+    <button onclick="register()">Register</button>
+
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Enter Email">
+    <input type="password" id="loginPassword" placeholder="Enter Password">
+    <button onclick="login()">Login</button>
+
+    <h2>Logout</h2>
+    <button onclick="logout()">Logout</button>
+</body>
